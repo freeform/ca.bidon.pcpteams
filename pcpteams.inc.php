@@ -1,6 +1,7 @@
 <?php
 
-define('CIVICRM_PCPTEAM_TYPE_INDIVIDUAL', 1);
+define('CIVICRM_PCPTEAM_TYPE_INDIVIDUAL', 0);
+define('CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER', 1);
 define('CIVICRM_PCPTEAM_TYPE_TEAM', 2);
 
 
@@ -61,7 +62,7 @@ function pcpteams_pcpblockteam_setvalue($target_entity_type, $target_entity_id, 
  *
  * @param Int $pcp_id ID of the PCP page in civicrm_pcp
  * @param Int $pcp_team_id ID of the PCP team (NULL means the page is not part of a team).
- * @param Int $pcp_type_id Type of PCP page (CIVICRM_PCPTEAM_TYPE_TEAM or CIVICRM_PCPTEAM_TYPE_INDIVIDUAL).
+ * @param Int $pcp_type_id Type of PCP page (CIVICRM_PCPTEAM_TYPE_TEAM, CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER or CIVICRM_PCPTEAM_TYPE_INDIVIDUAL).
  * @param Boolean $notifications Send e-mail notifications to the pcp page owner for each contribution received.
  * @returns void.
  */
@@ -79,6 +80,7 @@ function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 
   // Strict validation of the type of PCP id, since we don't want bad data in the DB.
   $valid_team_types = array(
     CIVICRM_PCPTEAM_TYPE_TEAM,
+    CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER,
     CIVICRM_PCPTEAM_TYPE_INDIVIDUAL,
   );
 

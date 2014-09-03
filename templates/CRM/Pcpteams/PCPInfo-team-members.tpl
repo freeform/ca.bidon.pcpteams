@@ -1,7 +1,7 @@
 <table class="civicrm-pcpteams-members">
 <tbody>
   <tr>
-    <th class="civicrm-pcpteams-members-title">{$pcp.title}</th>
+    <th class="civicrm-pcpteams-members-title">{ts}Members of{/ts} {$pcp.title}</th>
     <th class="civicrm-pcpteams-members-amount">{ts}Raised{/ts}</th>
   </tr>
 {foreach from=$pcp_members key=x item=member}
@@ -13,7 +13,7 @@
   {/if}
 {foreachelse}
   <tr>
-    <td colspan="2" class="civicrm-pcpteams-members-none">{ts}No members{/ts}</td>
+    <td colspan="2" class="civicrm-pcpteams-members-none">{ts}No team member pages yet.{/ts} <strong><a href="{crmURL p="civicrm/pcp/campaign" q="action=add&reset=1&component=contribute&pageId=`$pcp.page_id`&pcp_team_id=`$pcp.id`"}">{ts}Join this team{/ts}</a></strong></td>
   </tr>
 {/foreach}
 </table>

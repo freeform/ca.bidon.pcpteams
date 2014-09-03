@@ -144,7 +144,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
   elseif ($pcp_team_id) {
     // pcp_id in session means that the URL the user received is an invite to a team
     $defaults['pcp_team_id'] = $pcp_team_id;
-    $defaults['pcp_team_type'] = CIVICRM_PCPTEAM_TYPE_INDIVIDUAL;
+    $defaults['pcp_team_type'] = CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER;
   }
   else {
     $defaults['pcp_team_type'] = CIVICRM_PCPTEAM_TYPE_INDIVIDUAL;
@@ -169,6 +169,9 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
       CIVICRM_PCPTEAM_TYPE_INDIVIDUAL => array(
         'label' => ts('Individual'),
       ),
+      CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER => array(
+        'label' => ts('Team member'),
+      ),
       CIVICRM_PCPTEAM_TYPE_TEAM => array(
         'label' => ts('Team'),
       ),
@@ -182,7 +185,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
       $radios[$key] = $form->addElement('radio', NULL, $key, $e['label'], $key, $options);
     }
 
-    $form->addGroup($radios, 'pcp_team_type', ts('Type'));
+    $form->addGroup($radios, 'pcp_team_type', ts('Page type'), '<br />');
   }
 
   // If individual, which team to join (may be empty)
@@ -202,11 +205,14 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
       unset($teams[$pcp_id]);
     }
 
-    $form->addElement('select', 'pcp_team_id', ts('Team'), $teams);
+    $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
   }
 
   // Checkbox to receive contribution notifications
   $form->addElement('checkbox', 'pcp_team_notifications', ts('Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
+  // Checkbox to receive contribution notifications
+  $form->addElement('checkbox', 'pcp_team_notifications', ts('Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
+
 
   $form->setDefaults($defaults);
 
