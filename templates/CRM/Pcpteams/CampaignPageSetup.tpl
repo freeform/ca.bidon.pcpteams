@@ -1,6 +1,6 @@
 {if $form.pcp_team_type}
   <div class="crm-section crm-pcp-team-type-section">
-    <div class="label">{$form.pcp_team_type.label}</div>
+    <div class="label">{$form.pcp_team_type.label} <span title="This field is required." class="crm-marker">*</span></div>
     <div class="content">{$form.pcp_team_type.html}</div>
     <div class="clear"></div>
   </div>

@@ -156,10 +156,20 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
   if (! $pcp_id) {
     $form->addElement('hidden', 'pcp_team_default_title', $session->get('pcp_team_first_name') . ' ' . $session->get('pcp_team_last_name'));
   }
+  else {
+    // Needed for editing pages and changing type from individual to team member etc.
+    $session = CRM_Core_Session::singleton();
+    $userId = $session->get('userID');
+    $contact = _pcpteams_get_contact($userId);
+    if ($contact && isset($contact['display_name'])) {
+      $form->addElement('hidden', 'pcp_team_default_title', $contact['display_name']);
+    }
+  }
 
-  // Type of page (new team or individual)
-  // We do not allow to change this for existing pages (or people following a "join this team" link).
-  if (! empty($defaults['pcp_team_id'])) {
+  // Type of page (new team, team member or individual)
+  // We do not allow to change this for people following a "join this team" link.
+  // We also don't allow changes for existing pages of type team
+  if (! empty($pcp_team_id) || ($pcp_id && $defaults['pcp_team_type'] == CIVICRM_PCPTEAM_TYPE_TEAM)) {
     $form->addElement('hidden', 'pcp_team_type', $defaults['pcp_team_type'], array('id' => 'pcp_team_type'));
   }
   else {
@@ -189,8 +199,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
   }
 
   // If individual, which team to join (may be empty)
-  if (! empty($defaults['pcp_team_id'])) {
-    // we do not allow people to change teams (keep it simple)
+  if (! empty($pcp_team_id)) {
     $form->addElement('hidden', 'pcp_team_id', $defaults['pcp_team_id']);
   }
   else {
@@ -208,13 +217,14 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
   }
 
+  // Checkbox to receive new team member notifications
+  $form->addElement('checkbox', 'pcp_team_member_notifications', ts('New Member Notifications'), ts('Notify me by e-mail when a new team member joins.'));
   // Checkbox to receive contribution notifications
-  $form->addElement('checkbox', 'pcp_team_notifications', ts('Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
-  // Checkbox to receive contribution notifications
-  $form->addElement('checkbox', 'pcp_team_notifications', ts('Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
-
+  $form->addElement('checkbox', 'pcp_team_notifications', ts('Contribution Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
 
   $form->setDefaults($defaults);
+
+  $form->addFormRule('_pcpteams_CRM_PCP_Form_Campaign_formRule');
 
   // Add a template to the form region to display the field
   CRM_Core_Region::instance('pcp-form-campaign')->add(array(
@@ -289,6 +299,7 @@ function pcpteams_civicrm_pageRun(&$page) {
 
   switch($name) {
     case 'CRM_PCP_Page_PCPInfo':
+
       // Fetch the team pcp_id, if any, to display the team name
       $smarty = CRM_Core_Smarty::singleton();
 
@@ -384,5 +395,16 @@ function pcpteams_civicrm_post($op, $objectName, $objectId, &$objectRef) {
 
     CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
   }
+}
+
+function _pcpteams_CRM_PCP_Form_Campaign_formRule($fields) {
+  $errors = array();
+  if (!isset($fields['pcp_team_type']) || $fields['pcp_team_type'] === '') {
+    $errors['pcp_team_type'] = ts('Page type is a required field.');
+  }
+  if ($fields['pcp_team_type'] == CIVICRM_PCPTEAM_TYPE_TEAM_MEMBER && empty($fields['pcp_team_id'])) {
+    $errors['pcp_team_id'] = ts('You must select a team to create a Team member page.');
+  }
+  return $errors;
 }
 

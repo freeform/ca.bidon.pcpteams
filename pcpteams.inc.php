@@ -73,7 +73,7 @@ function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 
   }
 
   // If it is a team page, make sure we do not allow to be part of another team
-  if ($pcp_type_id == CIVICRM_PCPTEAM_TYPE_TEAM) {
+  if ($pcp_type_id == CIVICRM_PCPTEAM_TYPE_TEAM || $pcp_type_id == CIVICRM_PCPTEAM_TYPE_INDIVIDUAL) {
     $pcp_team_id = NULL;
   }
 
@@ -96,16 +96,23 @@ function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 
   $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_pcp_team WHERE status_id = 1 AND civicrm_pcp_id = %1", $params);
 
   if ($dao->fetch()) {
-/*
-  [ML] do not allow to update for now (change type or team).. too many things to manage.
+    // FIXME: Consider options for updating
     CRM_Core_DAO::executeQuery("
       UPDATE civicrm_pcp_team
       SET status_id = 1,
-        civicrm_pcp_id_parent = $pcp_team_id
-        type_id = $pcp_type_id
+        civicrm_pcp_id_parent = " . ($pcp_team_id ? $pcp_team_id : 'NULL') .
+        ", type_id = $pcp_type_id
       WHERE civicrm_pcp_id = " . $pcp_id
     );
-*/
+    // If we were a team before, then update children
+    if ($dao->type_id == CIVICRM_PCPTEAM_TYPE_TEAM && $pcp_type_id != CIVICRM_PCPTEAM_TYPE_TEAM) {
+      CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_pcp_team
+      SET civicrm_pcp_id_parent = NULL
+      , type_id = " . CIVICRM_PCPTEAM_TYPE_INDIVIDUAL . "
+      WHERE civicrm_pcp_id_parent = " . $pcp_id
+      );
+    }
   }
   else {
     if ($pcp_team_id) {
@@ -266,5 +273,37 @@ function pcpteams_getamountraised($pcp_id) {
   }
 
   return $total;
+}
+
+function _pcpteams_get_contact ($userId = NULL) {
+  $contact_array = NULL;
+  if (!isset($userId)) {
+    return $contact_array;
+  }
+  $standard_fields = array(
+    'contact_id',
+    'contact_type',
+    'contact_sub_type',
+    'sort_name',
+    'display_name',
+    'first_name',
+    'last_name',
+    'id' ,
+  );
+
+  $params = array(
+    'version' => 3,
+    'id' => $userId,
+    'return' => $standard_fields,
+    'sequential' => '0'
+  );
+
+  $contacts = civicrm_api('Contact', 'get', $params);
+  if ($contacts['is_error'] == 1) {
+    return NULL;
+  }
+  $contact_array = $contacts['values'][$userId];
+
+  return $contact_array;
 }
 
