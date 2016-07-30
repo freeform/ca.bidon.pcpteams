@@ -234,6 +234,9 @@ function pcpteams_getmembers($pcp_id, $show_non_approved = FALSE) {
     return $members[$pcp_id];
   }
 
+  // Need to set the array for when there are no members of the team
+  $members[$pcp_id] = array();
+
   // Get the status_id for 'approved'
   $pcpStatus  = CRM_Contribute_PseudoConstant::pcpStatus();
   $approved   = CRM_Utils_Array::key(ts('Approved'), $pcpStatus);
@@ -256,7 +259,6 @@ function pcpteams_getmembers($pcp_id, $show_non_approved = FALSE) {
       'is_active' => $dao->is_active,
     );
   }
-
   return $members[$pcp_id];
 }
 
@@ -275,6 +277,9 @@ function pcpteams_getamountraised($pcp_id) {
   return $total;
 }
 
+/**
+ * Get the contact given the userid
+ */
 function _pcpteams_get_contact ($userId = NULL) {
   $contact_array = NULL;
   if (!isset($userId)) {
@@ -306,4 +311,3 @@ function _pcpteams_get_contact ($userId = NULL) {
 
   return $contact_array;
 }
-
