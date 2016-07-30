@@ -1,3 +1,4 @@
+<h2>Donate through one of our team members</h2>
 <table class="civicrm-pcpteams-members">
 <tbody>
   <tr>

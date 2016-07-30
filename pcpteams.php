@@ -174,6 +174,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
   }
   else {
     $radios = array();
+    $options = array();
 
     $elements = array(
       CIVICRM_PCPTEAM_TYPE_INDIVIDUAL => array(
@@ -204,7 +205,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
   }
   else {
     // Taken from PCP/Form/Campaign.php postProcess
-    $component_page_type = $form->_component;
+    $component_page_type = $form->_component ? $form->_component : 'contribute'; // Default to contribute
     $component_page_id = $form->get('component_page_id') ? $form->get('component_page_id') : $form->_contriPageId;
 
     $teams = array('' => ts('- select -')) + pcpteams_getteamnames($component_page_type, $component_page_id);
@@ -215,10 +216,12 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     }
 
     $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
+
   }
 
   // Checkbox to receive new team member notifications
   $form->addElement('checkbox', 'pcp_team_member_notifications', ts('New Member Notifications'), ts('Notify me by e-mail when a new team member joins.'));
+
   // Checkbox to receive contribution notifications
   $form->addElement('checkbox', 'pcp_team_notifications', ts('Contribution Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
 
@@ -299,13 +302,11 @@ function pcpteams_civicrm_pageRun(&$page) {
 
   switch($name) {
     case 'CRM_PCP_Page_PCPInfo':
-
       // Fetch the team pcp_id, if any, to display the team name
       $smarty = CRM_Core_Smarty::singleton();
 
       $pcp = $smarty->_tpl_vars['pcp'];
       $pcp_team_info = pcpteams_getteaminfo($pcp['pcp_id']);
-
       $smarty->assign('pcpteams_type_id', $pcp_team_info->type_id);
 
       if ($pcp_team_info->civicrm_pcp_id_parent) {
@@ -313,7 +314,7 @@ function pcpteams_civicrm_pageRun(&$page) {
 
         CRM_Core_Region::instance('pcp-page-pcpinfo')->add(array(
           'template' => 'CRM/Pcpteams/PCPInfo-team-name.tpl',
-          'weight' => -1,
+          'weight' => -99,
         ));
       }
       else {
@@ -327,7 +328,8 @@ function pcpteams_civicrm_pageRun(&$page) {
           $total = CRM_PCP_BAO_PCP::thermoMeter($pcp['pcp_id']);
           $total += pcpteams_getamountraised($pcp['pcp_id']);
 
-          $achieved = $total / $smarty->_tpl_vars['pcp']['goal_amount'] * 100;
+          // Calculate the percent to goal to the nearest whole number
+          $achieved = number_format($total / $smarty->_tpl_vars['pcp']['goal_amount'] * 100, 0);
 
           $smarty->assign('total', $total);
           $smarty->assign('achieved', $achieved);
@@ -337,7 +339,16 @@ function pcpteams_civicrm_pageRun(&$page) {
             'weight' => 99,
           ));
         }
+        elseif ($pcp_team_info->type_id == CIVICRM_PCPTEAM_TYPE_INDIVIDUAL ) {
+          CRM_Core_Region::instance('pcp-page-pcpinfo')->add(array(
+            'template' => 'CRM/Pcpteams/PCPInfo-individual.tpl',
+            'weight' => -99,
+          ));
+        }
       }
+
+      $resources = CRM_Core_Resources::singleton();
+      $resources->addStyleFile('ca.bidon.pcpteams', 'pcpteams.css');
 
       break;
   }
@@ -397,6 +408,9 @@ function pcpteams_civicrm_post($op, $objectName, $objectId, &$objectRef) {
   }
 }
 
+/**
+ * Set the form rules
+ */
 function _pcpteams_CRM_PCP_Form_Campaign_formRule($fields) {
   $errors = array();
   if (!isset($fields['pcp_team_type']) || $fields['pcp_team_type'] === '') {
@@ -407,4 +421,3 @@ function _pcpteams_CRM_PCP_Form_Campaign_formRule($fields) {
   }
   return $errors;
 }
-
