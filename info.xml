@@ -4,14 +4,14 @@
   <name>Personal Campaign Teams</name>
   <description>Allows Personal Campaign Pages to be part of teams, with a common objective as well as an individual page for each member.</description>
   <license>AGPL</license>
-  <downloadUrl>https://github.com/mlutfy/civicrmpcpteams/archive/master.zip</downloadUrl>
+  <downloadUrl>https://github.com/freeform/ca.bidon.pcpteams/archive/master.zip</downloadUrl>
   <maintainer>
     <author>Mathieu Lutfy</author>
     <email>mathieu@bidon.ca</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">https://github.com/mlutfy/ca.bidon.pcpteams</url>
-    <url desc="Support">http://forum.civicrm.org</url>
+    <url desc="Main Extension Page">https://github.com/freeform/ca.bidon.pcpteams</url>
+    <url desc="Support">https://github.com/freeform/ca.bidon.pcpteams/issues</url>
     <url desc="Licensing">http://civicrm.org/licensing</url>
   </urls>
   <releaseDate>2012-12-19</releaseDate>

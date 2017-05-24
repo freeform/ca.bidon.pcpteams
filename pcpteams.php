@@ -201,6 +201,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
 
   // If individual, which team to join (may be empty)
   if (! empty($pcp_team_id)) {
+    // we do not allow people to change teams (keep it simple)
     $form->addElement('hidden', 'pcp_team_id', $defaults['pcp_team_id']);
   }
   else {
@@ -218,9 +219,6 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
 
   }
-
-  // Checkbox to receive new team member notifications
-  $form->addElement('checkbox', 'pcp_team_member_notifications', ts('New Member Notifications'), ts('Notify me by e-mail when a new team member joins.'));
 
   // Checkbox to receive contribution notifications
   $form->addElement('checkbox', 'pcp_team_notifications', ts('Contribution Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
