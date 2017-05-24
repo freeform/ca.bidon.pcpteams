@@ -37,10 +37,7 @@ Enabling the extension will allow the following:
   a specific team member.
 
 To download the latest version of this extension:
-https://github.com/mlutfy/ca.bidon.pcpteams
-
-More information:
-https://civicrm.org/blogs/mlutfy/personal-campaign-page-teams
+https://github.com/freeform/ca.bidon.pcpteams
 
 Requirements
 ============
@@ -61,10 +58,7 @@ Support
 =======
 
 Please post bug reports in the issue tracker of this project on github:
-https://github.com/mlutfy/ca.bidon.pcpteams/issues
-
-For general questions and support, please post on the "Extensions" forum:
-http://forum.civicrm.org/index.php/board,57.0.html
+https://github.com/freeform/ca.bidon.pcpteams/issues
 
 This is a community contributed extension written thanks to the financial
 support of organisations using it, as well as the very helpful and collaborative
@@ -77,9 +71,10 @@ While I do my best to provide volunteer support for this extension, please
 consider financially contributing to support or development of this extension
 if you can.
 
-Commercial support via Coop SymbioTIC: <https://www.symbiotic.coop>
+Original extension
+==================
 
-Or you can send me the equivalent of a beer: <https://www.bidon.ca/en/paypal>
+Coop SymbioTIC: <https://www.symbiotic.coop>
 
 License
 =======
