@@ -176,6 +176,11 @@ function pcpteams_getteaminfo($pcp_id) {
 function pcpteams_getteamnames($component_page_type = 'contribute', $component_page_id = NULL) {
   $teams = array();
 
+  // Since 4.6, editing a contribution PCP page seems to not have the $form->_component.
+  if (! $component_page_type) {
+    $component_page_type = 'contribute';
+  }
+
   $sql = "
     SELECT pcp.id, pcp.title
       FROM civicrm_pcp_team t
