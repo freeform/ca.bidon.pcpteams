@@ -56,7 +56,6 @@ cj(function($) {
     pcpteams_profile_toggle_teamlist();
     pcpteams_profile_toggle_notify();
   });
-
   pcpteams_profile_toggle_notify();
 
 });

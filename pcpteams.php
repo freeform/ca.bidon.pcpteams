@@ -140,6 +140,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     $defaults['pcp_team_id'] = $pcp_team_info->civicrm_pcp_id_parent;
     $defaults['pcp_team_type'] = $pcp_team_info->type_id;
     $defaults['pcp_team_notifications'] = $pcp_team_info->notify_on_contrib;
+    $defaults['pcp_team_member_notifications'] = $pcp_team_info->notify_on_new_member;
   }
   elseif ($pcp_team_id) {
     // pcp_id in session means that the URL the user received is an invite to a team
@@ -201,6 +202,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
 
   // If individual, which team to join (may be empty)
   if (! empty($pcp_team_id)) {
+    // we do not allow people to change teams (keep it simple)
     $form->addElement('hidden', 'pcp_team_id', $defaults['pcp_team_id']);
   }
   else {
@@ -216,7 +218,6 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     }
 
     $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
-
   }
 
   // Checkbox to receive new team member notifications
@@ -270,6 +271,7 @@ function pcpteams_civicrm_postProcess($formName, &$form) {
       $pcp_team_id = CRM_Utils_Array::value('pcp_team_id', $form->_submitValues);
       $pcp_team_type = CRM_Utils_Array::value('pcp_team_type', $form->_submitValues);
       $pcp_team_notifications = CRM_Utils_Array::value('pcp_team_notifications', $form->_submitValues);
+      $pcp_team_member_notifications = CRM_Utils_Array::value('pcp_team_member_notifications', $form->_submitValues);
 
       // FIXME: If we are creating a new PCP page, how do we get the page ID?
       // Code below is making the dangerous assumptions that new PCP pages are not often created at the same time.
@@ -281,10 +283,13 @@ function pcpteams_civicrm_postProcess($formName, &$form) {
       }
 
       // This only supports the initial creation for now
+      pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_team_type, $pcp_team_notifications, $pcp_team_member_notifications);
       pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_team_type, $pcp_team_notifications);
 
       // E-mail notifications on contribution received
       CRM_Core_DAO::executeQuery("UPDATE civicrm_pcp_team SET notify_on_contrib = " . intval($pcp_team_notifications) . " WHERE civicrm_pcp_id = " . $pcp_id);
+
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_pcp_team SET notify_on_new_member = " . intval($pcp_team_member_notifications) . " WHERE civicrm_pcp_id = " . $pcp_id);
 
       // unset the value from the session so that it does not cause problems later on
       // if the team is modified.
@@ -358,6 +363,83 @@ function pcpteams_civicrm_pageRun(&$page) {
  * Implements hook_civicrm_post().
  */
 function pcpteams_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+
+  if ($objectName == 'PCP' && $op == 'add') {
+    // Get PCP info
+    $pcp_team_info = pcpteams_getteaminfo($objectId);
+
+    // If it's a team member page
+    if ($pcp_team_info->civicrm_pcp_id_parent == NULL) {
+      return;
+    }
+
+    // Find the team member info
+    $sql =
+"SELECT contact_id FROM civicrm_pcp
+WHERE id = %1";
+    $params = array(
+        1 => array($pcp_team_info->civicrm_pcp_id_parent, 'Positive')
+    );
+    $dao = CRM_Core_DAO::executeQuery($sql, $params);
+
+    while ($dao->fetch()) {
+      $team_member_id = $dao->contact_id;
+    }
+    $team_member = civicrm_api3('Contact', 'getsingle', array(
+      'id' => $team_member_id,
+    ));
+
+    // Find the team owner info
+    $sql =
+"SELECT p.contact_id, p.title FROM civicrm_pcp p
+INNER JOIN pantheon.civicrm_pcp_team pt ON p.id = pt.civicrm_pcp_id
+WHERE pt.notify_on_new_member = 1
+AND p.id = %1";
+    $params = array(
+        1 => array($pcp_team_info->civicrm_pcp_id_parent, 'Positive')
+    );
+    $dao = CRM_Core_DAO::executeQuery($sql, $params);
+
+    if ($dao->fetch()) {
+      $owner_id = $dao->contact_id;
+      $pcp_title = $dao->title;
+    } else {
+      return;
+    }
+
+    //get the default domain email address.
+    list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();
+
+    $pcp_owner = civicrm_api3('Contact', 'getsingle', array(
+      'id' => $owner_id,
+    ));
+
+    $contact = new CRM_Contact_DAO_Contact();
+    $contact->id = $owner_id;
+    $contact->find(TRUE);
+    dpm($contact);
+
+    $tplParams = array(
+      'pcpName' => $pcp_title,
+      'displayName' => $team_member['display_name'],
+      'memberFirstName' => $team_member['first_name'],
+      'memberLastName' => $team_member['last_name'],
+      'memberEmail' => $team_member['email'],
+    );
+
+    $sendTemplateParams = array(
+      'groupName' => 'msg_tpl_workflow_contribution',
+      'valueName' => 'pcpteams_notification_new_member',
+      'contactId' => $pcp_owner['contact_id'],
+      'toEmail' => $pcp_owner['email'],
+      'from' => "$domainEmailName <$domainEmailAddress>",
+      'tplParams' => $tplParams,
+      'isTest' => $contact->is_test,
+    );
+
+    CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
+  }
+
   if ($objectName == 'SoftCredit' && $op == 'create') {
     //get the default domain email address.
     list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();

@@ -48,14 +48,6 @@ class CRM_Pcpteams_Upgrader extends CRM_Pcpteams_Upgrader_Base {
     return TRUE;
   }
 
-  /*
-   * Freeform -LS - disabling for now, not always correct in testing
-  public function upgrade_4400() {
-    $this->ctx->log->info('Applying update 4400');
-    $this->executeSqlFile('sql/upgrade_4400.sql', TRUE);
-    return TRUE;
-  }
- */
 
   /**
    * Example: Run an external SQL script

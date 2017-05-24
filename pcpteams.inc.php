@@ -66,12 +66,16 @@ function pcpteams_pcpblockteam_setvalue($target_entity_type, $target_entity_id, 
  * @param Boolean $notifications Send e-mail notifications to the pcp page owner for each contribution received.
  * @returns void.
  */
-function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 0) {
+function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 0, $new_member_notifications = 0) {
   // QuickForms might put null in here, if it was not checked.
   if (! $notifications) {
     $notifications = 0;
   }
 
+  if (! $new_member_notifications) {
+    $new_member_notifications = 0;
+  }
+  
   // If it is a team page, make sure we do not allow to be part of another team
   if ($pcp_type_id == CIVICRM_PCPTEAM_TYPE_TEAM || $pcp_type_id == CIVICRM_PCPTEAM_TYPE_INDIVIDUAL) {
     $pcp_team_id = NULL;
@@ -116,26 +120,28 @@ function pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_type_id, $notifications = 
   }
   else {
     if ($pcp_team_id) {
-      $sql = "INSERT INTO civicrm_pcp_team (civicrm_pcp_id, civicrm_pcp_id_parent, status_id, type_id, notify_on_contrib)
-                   VALUES (%1, %2, 1, %3, %4)";
+      $sql = "INSERT INTO civicrm_pcp_team (civicrm_pcp_id, civicrm_pcp_id_parent, status_id, type_id, notify_on_contrib, notify_on_new_member)
+                   VALUES (%1, %2, 1, %3, %4, %5)";
 
       $params = array(
         1 => array($pcp_id, 'Positive'),
         2 => array($pcp_team_id, 'Integer'),
         3 => array($pcp_type_id, 'Integer'),
         4 => array($notifications, 'Integer'),
+        5 => array($new_member_notifications, 'Integer'),
       );
 
       CRM_Core_DAO::executeQuery($sql, $params);
     }
     else {
-      $sql = "INSERT INTO civicrm_pcp_team (civicrm_pcp_id, civicrm_pcp_id_parent, status_id, type_id, notify_on_contrib)
-                   VALUES (%1, NULL, 1, %3, %4)";
+      $sql = "INSERT INTO civicrm_pcp_team (civicrm_pcp_id, civicrm_pcp_id_parent, status_id, type_id, notify_on_contrib, notify_on_new_member)
+                   VALUES (%1, NULL, 1, %3, %4, %5)";
 
       $params = array(
         1 => array($pcp_id, 'Positive'),
         3 => array($pcp_type_id, 'Integer'),
         4 => array($notifications, 'Integer'),
+        5 => array($new_member_notifications, 'Integer'),
       );
 
       CRM_Core_DAO::executeQuery($sql, $params);
@@ -169,6 +175,11 @@ function pcpteams_getteaminfo($pcp_id) {
  */
 function pcpteams_getteamnames($component_page_type = 'contribute', $component_page_id = NULL) {
   $teams = array();
+
+  // Since 4.6, editing a contribution PCP page seems to not have the $form->_component.
+  if (! $component_page_type) {
+    $component_page_type = 'contribute';
+  }
 
   $sql = "
     SELECT pcp.id, pcp.title
