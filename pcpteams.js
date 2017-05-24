@@ -30,19 +30,18 @@ cj(function($) {
     }
   }
 
-  // hv: disabling until we get it working
   // Hide the team member notification if the page is not for a team
-//  function pcpteams_profile_toggle_notify() {
-//    if ($('input[name="pcp_team_type"]:checked').val() == 2 || $('input[name="pcp_team_type"][type="hidden"]').val() == 2) {
-//      // Team, show notification option
-//      $('#Campaign .crm-pcp-pcp_team_member_notifications-section').slideDown('slow');
-//    }
-//    else {
-//      // Not a team, so hide notification
-//      $('.crm-pcp-pcp_team_member_notifications-section').slideUp();
-//      $('input#pcp_team_member_notifications').val('');
-//    }
-//  }
+  function pcpteams_profile_toggle_notify() {
+    if ($('input[name="pcp_team_type"]:checked').val() == 2 || $('input[name="pcp_team_type"][type="hidden"]').val() == 2) {
+      // Team, show notification option
+      $('#Campaign .crm-pcp-pcp_team_member_notifications-section').slideDown('slow');
+    }
+    else {
+      // Not a team, so hide notification
+      $('.crm-pcp-pcp_team_member_notifications-section').slideUp();
+      $('input#pcp_team_member_notifications').val('');
+    }
+  }
 
   pcpteams_profile_toggle_title();
   $('#crm-container #Campaign select#pcp_team_id').change(function() {
@@ -55,10 +54,8 @@ cj(function($) {
     // hide the person's name (pcp_title), since that will probably not be the team name.
     $('#pcp_title').val('');
     pcpteams_profile_toggle_teamlist();
-// hv: disabling until we get it working
-//    pcpteams_profile_toggle_notify();
+    pcpteams_profile_toggle_notify();
   });
-// hv: disabling until we get it working
-//  pcpteams_profile_toggle_notify();
+  pcpteams_profile_toggle_notify();
 
 });

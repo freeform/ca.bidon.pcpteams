@@ -140,8 +140,7 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     $defaults['pcp_team_id'] = $pcp_team_info->civicrm_pcp_id_parent;
     $defaults['pcp_team_type'] = $pcp_team_info->type_id;
     $defaults['pcp_team_notifications'] = $pcp_team_info->notify_on_contrib;
-    // hv: Disable until we get this working properly
-    //$defaults['pcp_team_member_notifications'] = $pcp_team_info->notify_on_new_member;
+    $defaults['pcp_team_member_notifications'] = $pcp_team_info->notify_on_new_member;
   }
   elseif ($pcp_team_id) {
     // pcp_id in session means that the URL the user received is an invite to a team
@@ -221,9 +220,8 @@ function pcpteams_civicrm_buildForm_CRM_PCP_Form_Campaign(&$form) {
     $form->addElement('select', 'pcp_team_id', ts('Choose Team'), $teams);
   }
 
-  // hv: Disabling until we get working
   // Checkbox to receive new team member notifications
-  //$form->addElement('checkbox', 'pcp_team_member_notifications', ts('New Member Notifications'), ts('Notify me by e-mail when a new team member joins.'));
+  $form->addElement('checkbox', 'pcp_team_member_notifications', ts('New Member Notifications'), ts('Notify me by e-mail when a new team member joins.'));
 
   // Checkbox to receive contribution notifications
   $form->addElement('checkbox', 'pcp_team_notifications', ts('Contribution Notifications'), ts('Notify me by e-mail when a new contribution is received.'));
@@ -273,8 +271,7 @@ function pcpteams_civicrm_postProcess($formName, &$form) {
       $pcp_team_id = CRM_Utils_Array::value('pcp_team_id', $form->_submitValues);
       $pcp_team_type = CRM_Utils_Array::value('pcp_team_type', $form->_submitValues);
       $pcp_team_notifications = CRM_Utils_Array::value('pcp_team_notifications', $form->_submitValues);
-      // hv: disabling until we get working
-      //$pcp_team_member_notifications = CRM_Utils_Array::value('pcp_team_member_notifications', $form->_submitValues);
+      $pcp_team_member_notifications = CRM_Utils_Array::value('pcp_team_member_notifications', $form->_submitValues);
 
       // FIXME: If we are creating a new PCP page, how do we get the page ID?
       // Code below is making the dangerous assumptions that new PCP pages are not often created at the same time.
@@ -285,16 +282,14 @@ function pcpteams_civicrm_postProcess($formName, &$form) {
         }
       }
 
-      // hv: disabling until we get it working
       // This only supports the initial creation for now
-      //pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_team_type, $pcp_team_notifications, $pcp_team_member_notifications);
+      pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_team_type, $pcp_team_notifications, $pcp_team_member_notifications);
       pcpteams_setteam($pcp_id, $pcp_team_id, $pcp_team_type, $pcp_team_notifications);
 
       // E-mail notifications on contribution received
       CRM_Core_DAO::executeQuery("UPDATE civicrm_pcp_team SET notify_on_contrib = " . intval($pcp_team_notifications) . " WHERE civicrm_pcp_id = " . $pcp_id);
 
-      // hv: disabling until we get it working
-      //CRM_Core_DAO::executeQuery("UPDATE civicrm_pcp_team SET notify_on_new_member = " . intval($pcp_team_member_notifications) . " WHERE civicrm_pcp_id = " . $pcp_id);
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_pcp_team SET notify_on_new_member = " . intval($pcp_team_member_notifications) . " WHERE civicrm_pcp_id = " . $pcp_id);
 
       // unset the value from the session so that it does not cause problems later on
       // if the team is modified.
@@ -368,10 +363,8 @@ function pcpteams_civicrm_pageRun(&$page) {
  * Implements hook_civicrm_post().
  */
 function pcpteams_civicrm_post($op, $objectName, $objectId, &$objectRef) {
-/*
- * hv: Disabling for now, probably need to put this into hook_civicrm_postProcess
+
   if ($objectName == 'PCP' && $op == 'add') {
-    object_log('PCP add', $objectId);
     // Get PCP info
     $pcp_team_info = pcpteams_getteaminfo($objectId);
 
@@ -397,7 +390,7 @@ WHERE id = %1";
     ));
 
     // Find the team owner info
-    $sql = 
+    $sql =
 "SELECT p.contact_id, p.title FROM civicrm_pcp p
 INNER JOIN pantheon.civicrm_pcp_team pt ON p.id = pt.civicrm_pcp_id
 WHERE pt.notify_on_new_member = 1
@@ -446,7 +439,7 @@ AND p.id = %1";
 
     CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
   }
-*/
+
   if ($objectName == 'SoftCredit' && $op == 'create') {
     //get the default domain email address.
     list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();
