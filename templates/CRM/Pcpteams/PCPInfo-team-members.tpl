@@ -14,7 +14,10 @@
   {/if}
 {foreachelse}
   <tr>
-    <td colspan="2" class="civicrm-pcpteams-members-none">{ts}No team member pages yet.{/ts} <strong><a href="{crmURL p="civicrm/pcp/campaign" q="action=add&reset=1&component=contribute&pageId=`$pcp.page_id`&pcp_team_id=`$pcp.id`"}">{ts}Join this team{/ts}</a></strong></td>
+    <td colspan="2" class="civicrm-pcpteams-members-none">{ts}No team member pages yet.{/ts}</td>
   </tr>
 {/foreach}
 </table>
+<div class="civicrm-pcpteams-pcpinfo-team-actions">
+  <a class="btn btn-primary" href="{crmURL p="civicrm/pcp/campaign" q="action=add&reset=1&component=contribute&pageId=`$pcp.page_id`&pcp_team_id=`$pcp.id`"}">{ts}Join this team{/ts}</a>
+</div>
